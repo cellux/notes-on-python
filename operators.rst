@@ -153,6 +153,43 @@ gt
    >>> 5 > 2
    True
 
+Boolean
+-------
+
+and
+###
+
+   >>> 5 > 2 and 2 < 5
+   True
+
+``and`` returns the first of its operands (from left to right) whose truth value is False (= the first ``x`` in the list of operands for which ``bool(x)`` returns ``False``)::
+
+   >>> [] and "that"
+   []
+
+If all operands are logically true, ``and`` returns the last one::
+
+   >>> "this" and "that"
+   'that'
+
+or
+##
+
+   >>> 5 > 2 or 2 < 5
+   True
+
+``or`` returns the first of its operands whose truth value is True::
+
+   >>> [] or "that"
+   'that'
+
+If all operands are logically false, ``or`` returns the last one::
+
+   >>> "" or () or {}
+   {}
+
+.. note:: Both ``and`` and ``or`` have short-circuiting behavior.
+
 not
 ###
 
