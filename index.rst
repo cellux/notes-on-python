@@ -10,6 +10,20 @@ Contents:
    objects
    types
    operators
+   control-flow
+   input-output
+   builtins
+   functions
+   classes
+   exceptions
+   modules
+   comprehensions
+   iterators-generators
+   decorators
+   context-managers
+   descriptors
+   slots
+   metaclasses
 
 Indices and tables
 ==================
@@ -17,4 +31,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
