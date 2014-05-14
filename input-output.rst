@@ -52,6 +52,10 @@ To make the new-style ``print()`` available in Python 2, you must explicitly bac
   >>> print(1,2,3,file=sys.stderr)
   1 2 3
 
+If you want to print something without a newline at the end::
+
+  >>> print('something', end='')
+
 The standard streams
 --------------------
 

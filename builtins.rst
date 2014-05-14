@@ -25,7 +25,7 @@ The following values are considered false:
 * zero of any numeric type, e.g. ``0``, ``0L``, ``0.0``, ``0j``
 * any empty sequence, e.g. ``''``, ``()``, ``[]``
 * any empty mapping, e.g. ``{}``
-* instances of user-defined classes, if the class defines a ``__nonzero__()`` or ``__len__()`` method, when that method returns the integer zero or bool value ``False``
+* instances of user-defined classes, if the class defines a ``__nonzero__()`` (``__bool__()`` in Python 3) or ``__len__()`` method, when that method returns the integer zero or bool value ``False``
 
 All other values are considered true.
 
@@ -207,6 +207,13 @@ You can check for the existence of a key with ``has_key(k)``::
   >>> d.has_key('z')
   False
 
+But it's much easier (and cleaner) to use the ``in`` operator::
+
+  >>> 'a' in d
+  True
+  >>> 'z' in d
+  False
+
 You can get the keys, the values or both using the following methods::
 
   >>> d.keys()
@@ -238,7 +245,7 @@ You can bulk-set keys and values using ``update()``::
           for m in
           re.finditer(r'<tr><td><a name=".*"></a>(\w+)</td><td>(\w+)</td><td>(\d+)</td><td>(\w+)</td><td><a href="[^"]+">([^<]+)</a></td><td>([^<]+)</td><td class="rightalign">([0-9,.]+)</td><td class="rightalign">([0-9,.]+)</td><td>(\w+)</td></tr>', res.read()))
     
-    for code,name in countries.iteritems():
+    for code,name in countries.items():
         print("{}={}".format(code,name))
 
 You can remove an element under a given key using ``pop(key, default)``::
@@ -319,22 +326,6 @@ Return the binary representation of an integer or long integer::
 
     >>> bin(129)
     '0b10000001'
-
-callable
---------
-
-    >>> callable(5)
-    False
-    >>> def f(): print 5
-    ... 
-    >>> f()
-    5
-    >>> callable(f)
-    True
-    >>> callable(callable)
-    True
-    >>> callable(bool)
-    True
 
 chr
 ---
@@ -473,7 +464,7 @@ id
     id(object) -> integer
         Return the identity of an object.  This is guaranteed to be unique among simultaneously existing objects.  (Hint: it's the object's memory address.)
 
-Interestingly, integers also have an unique identity (at least some of them)::
+Interestingly, even integer objects have unique identities::
 
     >>> id(0)
     16078800
@@ -489,7 +480,7 @@ Interestingly, integers also have an unique identity (at least some of them)::
     >>> id(256)
     16084608
 
-From 257 upwards, their identities dissolve and they all become one::
+But from 257 upwards, the pattern changes::
 
     >>> id(257)
     16362640
@@ -498,16 +489,55 @@ From 257 upwards, their identities dissolve and they all become one::
     >>> id(259)
     16362640
 
-Based on this observation, one would think that the identity of let's say ``300`` and ``301`` are the same::
+This is because Python - or rather the CPython implementation - has a more "intimate" relationship with the integers between ``-5`` and ``256`` than with others. The integer objects in this range are created at VM startup and are stored in a permanent table. When you reference an integer between -5 and 256, one of these static objects will be returned.
 
-    >>> id(300)
-    16362592
-    >>> id(301)
-    16362592
+For the rest of integers, new objects are created dynamically on the heap as needed. If such a newly created integer object is not referenced any more, the GC cleans it up, with the following caveat: the memory allocated for it does not disappear (as it usually happens with ordinary objects) - it gets appended to a free list, so that another integer can use the same space later on.
 
-But the ``is`` operator tells us otherwise::
+In the above example, an integer object was allocated for ``257``, then its refcount went to 0 so it got deallocated and the associated memory block went to the free list. The allocation for ``258`` happened to use the same memory block, that's why ``id()`` gave the same result. Similarly for ``259``.
 
-    >>> 300 is 301
+    >>> id(257),id(258)
+    (12774520, 12774544)
+    >>> id(257),id(258)
+    (12774520, 12774544)
+    >>> id(259),id(260)
+    (12774520, 12774544)
+
+Here three tuples are created, and each one references two integer objects. The integers referenced by each tuple use up the first two entries of the free list. When the tuple object is thrown away, the refcount of both integers goes back to zero, so they are both deallocated and their associated memory blocks go back to the free list. That's why we see the same ids in subsequent lines - even if the integers occupying the memory blocks have different values.
+
+If we store the integers into variables, the GC won't touch them until the variables are visible::
+
+    >>> a=257
+    >>> b=258
+    >>> id(a)
+    37997640
+    >>> id(b)
+    37997664
+
+But watch this::
+
+    >>> id(257)
+    37997544
+    >>> id(258)
+    37997544
+
+It seems that for integers outside the "intimate" range, Python doesn't bother checking whether an integer object with the requested value has been already allocated (and hence could be reused). It mindlessly creates a new object, even if the numeric value of the new integer is the same as that of an existing one::
+
+    >>> a=257
+    >>> b=257
+    >>> id(a)
+    12774472
+    >>> id(b)
+    12774496
+
+That's not the case for "intimate" integers::
+
+    >>> a = 200
+    >>> b = 200
+    >>> a is b
+    True
+    >>> a = 300
+    >>> b = 300
+    >>> a is b
     False
 
 input

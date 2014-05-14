@@ -48,6 +48,8 @@ Integer values which do not fit into a processor register are automatically and 
     >>> type(100000000000000000000000000000000000000000000000000000L)
     <type 'long'>
 
+.. note:: In Python 3, there is only an ``int`` type, which behaves in the same way as ``long`` in Python 2.
+
 Floats
 ######
 
