@@ -6,13 +6,11 @@ Defining functions
 
 A function definition creates a function object and binds it into the current namespace::
 
-
     def isleap(year):
         """Return True for leap years, False for non-leap years."""
         return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
 
-The body of the created function 
-will be executed when the function is called::
+The body of the created function will be executed when the function is called::
 
    >>> isleap(2000)
    True
@@ -33,7 +31,14 @@ Default parameter values
             s = s.replace('"', "&quot;")
         return s
 
-For a parameter with a default value, the corresponding argument may be omitted from a call, in which case the parameter’s default value is substituted.
+For a parameter with a default value, the corresponding argument may be omitted from a call, in which case the parameter’s default value is substituted::
+
+    >>> escape("Bonnie & Clyde")
+    'Bonnie &amp; Clyde'
+    >>> escape('Blind "Lemon" Jefferson')
+    'Blind "Lemon" Jefferson'
+    >>> escape('Blind "Lemon" Jefferson', True)
+    'Blind &quot;Lemon&quot; Jefferson'
 
 If a parameter has a default value, all following parameters must also have a default value.
 
@@ -74,7 +79,7 @@ Upon a function call, all argument expressions are evaluated from left to right 
   >>> f(math.sin(0),math.cos(0))
   1.0
 
-If we call the function with more or less arguments than defined in the format parameter list, we get a ``TypeError``::
+If we call the function with more or less arguments than defined in the formal parameter list, we get a ``TypeError``::
 
   >>> def f(a,b): return a+b
   ... 
@@ -87,7 +92,7 @@ If we call the function with more or less arguments than defined in the format p
     File "<stdin>", line 1, in <module>
   TypeError: f() takes exactly 2 arguments (3 given)
 
-The arguments to be passed can be also specified by name::
+The arguments can be also specified by name::
 
   >>> f(b=5,a=3)
   8
@@ -295,6 +300,8 @@ Nested functions
 
 Example contents of a property file::
 
+    # build.properties
+
     SHARE=${HOME}/share
     BUILDDIR=${WORKSPACE}/.build
     PKGDIR=${BUILDDIR}/packages
@@ -385,159 +392,3 @@ Sublist unpacking
    ...
    >>> f(1,[5,8],3)
    x=1, y=5, z=8, a=3
-
-Anatomy of a function
----------------------
-
-::
-
-    def fib(n):
-        """Return the Nth Fibonacci number."""
-        if n == 0 or n == 1:
-            return 1
-        else:
-            return fib(n-1) + fib(n-2)
-
-::
-
-    >>> import profile
-    >>> profile.run("print fib(20)")
-    10946
-             21894 function calls (4 primitive calls) in 0.088 seconds
-    
-       Ordered by: standard name
-    
-       ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-            1    0.000    0.000    0.000    0.000 :0(setprofile)
-      21891/1    0.088    0.000    0.088    0.088 <stdin>:1(fib)
-            1    0.000    0.000    0.088    0.088 <string>:1(<module>)
-            1    0.000    0.000    0.088    0.088 profile:0(print fib(20))
-            0    0.000             0.000          profile:0(profiler)
-    
-    
-    >>> profile.run("print fib(30)")
-    1346269
-             2692540 function calls (4 primitive calls) in 12.857 seconds
-    
-       Ordered by: standard name
-    
-       ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-            1    0.000    0.000    0.000    0.000 :0(setprofile)
-    2692537/1   12.857    0.000   12.857   12.857 <stdin>:1(fib)
-            1    0.000    0.000   12.857   12.857 <string>:1(<module>)
-            1    0.000    0.000   12.857   12.857 profile:0(print fib(30))
-            0    0.000             0.000          profile:0(profiler)
-
-::
-
-    def memoize(f):
-        cache = {}
-        def g(x):
-            if x not in cache:
-                cache[x] = f(x)
-            return cache[x]
-        return g
-
-    fib = memoize(fib)
-
-::
-
-    >>> profile.run("print fib(100)")
-    573147844013817084101
-             303 function calls (5 primitive calls) in 0.008 seconds
-    
-       Ordered by: standard name
-    
-       ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-            1    0.000    0.000    0.000    0.000 :0(setprofile)
-        101/1    0.004    0.000    0.008    0.008 <stdin>:1(fib)
-        199/1    0.004    0.000    0.008    0.008 <stdin>:3(g)
-            1    0.000    0.000    0.008    0.008 <string>:1(<module>)
-            1    0.000    0.000    0.008    0.008 profile:0(print fib(100))
-            0    0.000             0.000          profile:0(profiler)
-
-Properties of function objects
-##############################
-
-::
-
-    import time
-    
-    def memoize(f, timeout=0):
-        cache = {}
-        def g(x):
-            now = time.time()
-            if timeout and x in cache:
-                value, ctime = cache[x]
-                if (now - ctime) > timeout:
-                    del cache[x]
-            if x not in cache:
-                cache[x] = (f(x), now)
-            return cache[x]
-        return g
-
-::
-
-    >>> memoize
-    <function memoize at 0x7f26b46f17d0>
-    >>> dir(memoize)
-    ['__call__', '__class__', '__closure__', '__code__', '__defaults__',
-     '__delattr__', '__dict__', '__doc__', '__format__', '__get__',
-     '__getattribute__', '__globals__', '__hash__', '__init__', '__module__',
-     '__name__', '__new__', '__reduce__', '__reduce_ex__', '__repr__',
-     '__setattr__', '__sizeof__', '__str__', '__subclasshook__',
-     'func_closure', 'func_code', 'func_defaults', 'func_dict',
-     'func_doc', 'func_globals', 'func_name']
-    >>> memoize.__name__
-    'memoize'
-    >>> memoize.__module__
-    '__main__'
-    >>> memoize.__class__
-    <type 'function'>
-    >>> memoize.__code__
-    <code object memoize at 0x7f26b46e7eb0, file "<stdin>", line 1>
-    >>> memoize.__defaults__
-    (0,)
-    >>> memoize.__globals__
-    {'profile': <module 'profile' from '/usr/lib/python2.7/profile.pyc'>,
-     '__builtins__': <module '__builtin__' (built-in)>,
-     '__package__': None,
-     'fib': <function g at 0x7f26b46ffed8>,
-     'time': <module 'time' (built-in)>,
-     '__name__': '__main__',
-     'memoize': <function memoize at 0x7f26b46ff9b0>,
-     '__doc__': None}
-
-::
-
-   >>> co = memoize.__code__
-   >>> dir(co)
-   ['__class__', '__cmp__', '__delattr__', '__doc__', '__eq__', '__format__',
-    '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__le__',
-    '__lt__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__',
-    '__setattr__', '__sizeof__', '__str__', '__subclasshook__',
-    'co_argcount', 'co_cellvars', 'co_code', 'co_consts', 'co_filename',
-    'co_firstlineno', 'co_flags', 'co_freevars', 'co_lnotab', 'co_name',
-    'co_names', 'co_nlocals', 'co_stacksize', 'co_varnames']
-   >>> co.co_name # function name
-   'memoize'
-   >>> co.__class__
-   <type 'code'>
-   >>> co.co_code # sequence of bytecode instructions
-   'i\x00\x00\x89\x00\x00\x87\x02\x00\x87\x00\x00\x87\x01\x00f\x03\x00d\x01\x00\x86\x00\x00}\x02\x00|\x02\x00S'
-   >>> co.co_argcount # number of positional arguments
-   2
-   >>> co.co_cellvars # names of local variables referenced by nested functions
-   ('cache', 'timeout', 'f')
-   >>> co.co_freevars # names of free variables
-   ()
-   >>> co.co_consts # literals used by the bytecode (first is docstring)
-   (None, <code object g at 0x7f26b46e7db0, file "<stdin>", line 3>)
-   >>> co.co_names # names used by the bytecode
-   ()
-   >>> co.co_filename
-   '<stdin>'
-   >>> co.co_nlocals # number of local variables (including arguments)
-   3
-   >>> co.co_varnames # name of local variables (starting with arguments)
-   ('f', 'timeout', 'g')
